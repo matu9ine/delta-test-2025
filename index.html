@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Аналитическая панель для мониторинга ключевых метрик бизнеса" />
+
+    <title>Аналитическая Панель</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div id="app" class="dashboard">
+      <div class="table-container">
+        <table id="metricsTable" role="table" aria-label="Таблица метрик бизнеса">
+          <thead>
+            <tr role="row">
+              <th class="indicator-column" scope="col" role="columnheader">Показатель</th>
+              <th class="current-day-column" scope="col" role="columnheader">Текущий день</th>
+              <th class="yesterday-column" scope="col" role="columnheader">Вчера</th>
+              <th class="weekday-column" scope="col" role="columnheader">Этот день недели</th>
+            </tr>
+          </thead>
+          <tbody>
+            <template v-for="(metric, index) in metricsData" :key="index">
+              <tr
+                :class="{ selected: selectedMetricIndex === index }"
+                @click="selectMetric(index)"
+                @keydown.enter="selectMetric(index)"
+                @keydown.space.prevent="selectMetric(index)"
+                role="button"
+                tabindex="0"
+                :aria-expanded="selectedMetricIndex === index"
+                :aria-label="`Показать график для ${metric.name}`"
+              >
+                <td class="indicator-cell">{{ metric.name }}</td>
+                <td class="current-day-cell">
+                  {{ formatNumber(metric.current) }}
+                </td>
+                <td
+                  class="yesterday-cell"
+                  :class="getChangeClass(metric.change)"
+                >
+                  {{ formatNumber(metric.yesterday) }}
+                  <span
+                    class="change-percent"
+                    :class="getChangeClass(metric.change)"
+                  >
+                    {{ metric.change > 0 ? '+' : '' }}{{ metric.change }}%
+                  </span>
+                </td>
+                <td
+                  class="weekday-cell"
+                  :class="getWeekdayClass(metric.weekday, metric.current)"
+                >
+                  {{ formatNumber(metric.weekday) }}
+                </td>
+              </tr>
+              <tr v-if="selectedMetricIndex === index" class="chart-row" role="region" aria-label="График метрики">
+                <td colspan="4" class="chart-cell">
+                  <div class="chart-container">
+                    <div v-if="loading" class="loader" role="status" aria-label="Загрузка графика">
+                      <div class="loader-spinner"></div>
+                      <span class="visually-hidden">Загрузка графика...</span>
+                    </div>
+                    <canvas :id="'metricsChart-' + index" role="img" :aria-label="`График изменения ${metricsData[index]?.name} за последние дни`"></canvas>
+                  </div>
+                </td>
+              </tr>
+            </template>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue@3.3.4/dist/vue.global.js"></script>
+    <script src="script.js"></script>
+  </body>
+</html>
